@@ -33,8 +33,15 @@ ul { padding-left: 20px; }
 
 
 <div class="card">
-<h3>📜 Reglas / Opciones de regalo</h3>
-<textarea id="rulesInput" placeholder="Escribe aquí las reglas u opciones de regalo..."></textarea>
+<h3>📜 Reglas</h3>
+<h4>📜 1. En la primera ruelta se les va a seleccionar un personaje el cual les va a ser asigando</h4>
+<h4>📜 2. En la segunda ruelta se les va aparecer el personaje al cual les toca regalar </h4>
+<h4>📜 3. En la caja de comentarios colocar el nombre del personaje que les fue asigando en la primera ruleta y leugo colocar las opciones de regalo (minimo 3 opciones) </h4> 
+<h4>📜 4. darle a guardar</h4> 
+<h4>📜 5.en la parte de abjo de la pagina va salir las opciones de todos y mirar cual fue el personaje a regalar</h4>  
+<h4>📜 El dia 24 de hara una dinamica de adivinar el personaje </h4> 
+<h3>📜 Opciones de regalo</h3>
+<textarea id="rulesInput" placeholder="Escribe aquí las reglas u opciones de regal, colocar de primeras el personaje que les fue asigando y ahi si  las opciones ..."></textarea>
 <button onclick="saveRule()">Guardar</button>
 
 
@@ -46,8 +53,8 @@ ul { padding-left: 20px; }
 
 <script>
 let characters = JSON.parse(localStorage.getItem('characters')) || [
-'Iron Man','Captain America','Thor','Hulk','Black Widow','Hawkeye','Spider-Man',
-'Doctor Strange','Black Panther','Scarlet Witch','Vision','Ant-Man','Wasp','Loki','Captain Marvel'
+'Iron Man','Capitan America','Thor','Hulk','viuda negra','ojo de halcon','Spider-Man',
+'Doctor Strange','Pantera negra','Bruja escarlata','Vision','Hombre hormiga','avispa','Loki','Capitan Marvel','Deadpool','Thanos'
 ];
 
 
@@ -104,4 +111,5 @@ renderRules();
 
 
 </body>
+
 </html>
