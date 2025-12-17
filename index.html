@@ -4,41 +4,159 @@
 <meta charset="UTF-8">
 <title>🎄 Amigo Navideño Marvel</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-body { font-family: Arial; background:#0f172a; color:white; padding:20px }
-h1 { text-align:center }
-.container { display:grid; grid-template-columns:1fr 1fr; gap:20px }
-.card { background:#1e293b; padding:20px; border-radius:10px }
-button { padding:10px; width:100%; margin-top:10px; cursor:pointer }
-textarea, input { width:100%; padding:10px; margin-top:10px }
-ul { padding-left:20px }
-.admin { display:none; margin-top:20px; background:#334155; padding:15px; border-radius:10px }
+body {
+  font-family: 'Segoe UI', Arial;
+  background: linear-gradient(180deg, #0f172a, #020617);
+  color: white;
+  margin: 0;
+  padding: 20px;
+  overflow-x: hidden;
+}
+
+/* NIEVE */
+.snowflake {
+  position: fixed;
+  top: -10px;
+  color: white;
+  font-size: 14px;
+  animation: fall linear infinite;
+  opacity: 0.8;
+}
+@keyframes fall {
+  to { transform: translateY(110vh); }
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.app {
+  max-width: 420px;
+  margin: auto;
+  background: #020617;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 0 30px rgba(0,0,0,.6);
+}
+
+.card {
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 15px;
+  margin-bottom: 15px;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: #16a34a;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+button:hover { background: #22c55e }
+
+input, textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+textarea { min-height: 90px }
+
+.result {
+  background: #020617;
+  padding: 10px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 18px;
+  margin-top: 8px;
+}
+
+ul { padding-left: 20px }
+
+.admin {
+  display: none;
+  background: #334155;
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 10px;
+}
 </style>
 </head>
 
 <body>
 
+<!-- NIEVE -->
+<script>
+for (let i = 0; i < 30; i++) {
+  let snow = document.createElement("div");
+  snow.className = "snowflake";
+  snow.innerHTML = "❄";
+  snow.style.left = Math.random() * 100 + "vw";
+  snow.style.animationDuration = 5 + Math.random() * 5 + "s";
+  snow.style.fontSize = 10 + Math.random() * 10 + "px";
+  document.body.appendChild(snow);
+}
+</script>
+
 <h1>🎄 Amigo Navideño Marvel 🦸‍♂️</h1>
 
-<input id="code" placeholder="Ingresa tu código único (AMIGO01)">
-<button onclick="assignCharacter()">🎡 Asignar personaje</button>
-<p><b>Mi personaje:</b> <span id="myCharacter">---</span></p>
+<div class="app">
 
-<button onclick="drawGift()">🎁 Sortear a quién regalar</button>
-<p><b>Regalo para:</b> <span id="giftCharacter">---</span></p>
+<!-- COMO USAR -->
+<div class="card">
+<h3>📲 ¿Cómo usar esta página?</h3>
+<p>
+1️⃣ Ingresa tu <b>código único</b> (cada persona tiene uno).<br><br>
+2️⃣ Presiona <b>Asignar personaje</b>. Ese será tu personaje Marvel durante todo el juego.<br><br>
+3️⃣ Luego presiona <b>Sortear regalo</b> para saber a qué personaje debes regalar.<br><br>
+4️⃣ Escribe tu personaje y <b>mínimo 3 opciones de regalo</b> y guarda.<br><br>
+5️⃣ El 24 de diciembre 🎅 se hará la dinámica para adivinar quién es cada personaje.
+</p>
+<h4>🎁 Presupuesto máximo: <b>$100.000</b></h4>
+</div>
 
-<textarea id="rulesInput" placeholder="Escribe tu personaje y opciones de regalo"></textarea>
+<!-- PARTICIPANTE -->
+<div class="card">
+<input id="code" placeholder="Ingresa tu código (Ej: AMIGO01)">
+
+<button onclick="assignCharacter()">🌀 Asignar personaje</button>
+<div class="result">🦸‍♂️ <span id="myCharacter">---</span></div>
+
+<button onclick="drawGift()">🎁 Sortear regalo</button>
+<div class="result">🎄 Regalas a: <span id="giftCharacter">---</span></div>
+</div>
+
+<!-- REGALOS -->
+<div class="card">
+<textarea id="rulesInput" placeholder="Ej: Iron Man - Camiseta, taza, figura..."></textarea>
 <button onclick="saveRule()">💾 Guardar opciones</button>
 
-<h3>🎀 Opciones guardadas</h3>
+<h4>🎀 Opciones guardadas</h4>
 <ul id="rulesList"></ul>
+</div>
 
 <!-- ADMIN -->
+<div class="card">
 <input id="adminKey" placeholder="Clave admin">
 <button onclick="unlockAdmin()">🔐</button>
 
 <div class="admin" id="adminPanel">
-<button onclick="resetAll()">♻️ Reiniciar todo el sorteo</button>
+<button onclick="resetAll()">♻️ Reiniciar sorteo</button>
+</div>
+</div>
+
 </div>
 
 <script>
@@ -67,8 +185,8 @@ function assignCharacter() {
   if (!data[code]) data[code] = {};
 
   if (!data[code].me) {
-    const index = Math.floor(Math.random() * available.length);
-    data[code].me = available.splice(index,1)[0];
+    const i = Math.floor(Math.random() * available.length);
+    data[code].me = available.splice(i,1)[0];
     saveAll();
   }
 
@@ -77,11 +195,11 @@ function assignCharacter() {
 
 function drawGift() {
   const code = document.getElementById("code").value.trim().toUpperCase();
-  if (!code || !data[code]?.me) return alert("Primero asigna tu personaje");
+  if (!data[code]?.me) return alert("Primero asigna tu personaje");
 
   if (!data[code].gift) {
-    const index = Math.floor(Math.random() * available.length);
-    data[code].gift = available.splice(index,1)[0];
+    const i = Math.floor(Math.random() * available.length);
+    data[code].gift = available.splice(i,1)[0];
     saveAll();
   }
 
@@ -114,7 +232,7 @@ function unlockAdmin() {
 }
 
 function resetAll() {
-  if (confirm("¿Seguro que deseas reiniciar TODO?")) {
+  if (confirm("¿Seguro que deseas reiniciar TODO el sorteo?")) {
     localStorage.clear();
     location.reload();
   }
@@ -125,6 +243,8 @@ renderRules();
 
 </body>
 </html>
+
+
 
 
 
