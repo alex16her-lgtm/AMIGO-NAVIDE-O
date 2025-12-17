@@ -1,125 +1,129 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<title>Amigo Navideño Marvel</title>
+<meta charset="UTF-8">
+<title>🎄 Amigo Navideño Marvel</title>
+
 <style>
-body { font-family: Arial, sans-serif; background: #0f172a; color: white; padding: 20px; }
-h1 { text-align: center; }
-.container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.card { background: #1e293b; padding: 20px; border-radius: 10px; }
-button { padding: 10px; margin-top: 10px; width: 100%; cursor: pointer; }
-textarea { width: 100%; height: 100px; }
-ul { padding-left: 20px; }
+body { font-family: Arial; background:#0f172a; color:white; padding:20px }
+h1 { text-align:center }
+.container { display:grid; grid-template-columns:1fr 1fr; gap:20px }
+.card { background:#1e293b; padding:20px; border-radius:10px }
+button { padding:10px; width:100%; margin-top:10px; cursor:pointer }
+textarea, input { width:100%; padding:10px; margin-top:10px }
+ul { padding-left:20px }
+.admin { display:none; margin-top:20px; background:#334155; padding:15px; border-radius:10px }
 </style>
 </head>
-<body>
 
+<body>
 
 <h1>🎄 Amigo Navideño Marvel 🦸‍♂️</h1>
 
+<input id="code" placeholder="Ingresa tu código único (AMIGO01)">
+<button onclick="assignCharacter()">🎡 Asignar personaje</button>
+<p><b>Mi personaje:</b> <span id="myCharacter">---</span></p>
 
-<div class="container">
-<div class="card">
-<h3>🌀 Personaje asignado</h3>
-<p id="myCharacter">---</p>
-<button onclick="assignCharacter()">Asignar personaje</button>
+<button onclick="drawGift()">🎁 Sortear a quién regalar</button>
+<p><b>Regalo para:</b> <span id="giftCharacter">---</span></p>
 
+<textarea id="rulesInput" placeholder="Escribe tu personaje y opciones de regalo"></textarea>
+<button onclick="saveRule()">💾 Guardar opciones</button>
 
-<h3>🎁 Personaje al que regalo</h3>
-<p id="giftCharacter">---</p>
-<button onclick="drawGift()">Sortear regalo</button>
-</div>
-
-
-<div class="card">
-<h3>📜 Reglas</h3>
-<h4> 1. En la primera ruleta se asignará al azar un personaje de Marvel a cada participante.  
-Este personaje será el que te represente durante todo el juego.</h4>
-<h4>2. En la segunda ruleta se seleccionará al azar el personaje de Marvel al cual te
-corresponde realizar el regalo.</h4>
-<h4>3. En la caja de comentarios deberás escribir:
-<br>• El nombre del personaje que te fue asignado en la primera ruleta.
-<br>• Las opciones de regalo que te gustaría recibir (mínimo 3 opciones).</h4>
-<h4> 4. Una vez ingresada la información, debes presionar el botón <b>Guardar</b>
-para que quede registrada.</h4>
-<h4> 5. En la parte inferior de la página se mostrarán las opciones de regalo de todos
-los participantes, indicando a qué personaje se le debe regalar.</h4> 
-<h4>6. El día 24 se realizará una dinámica final donde los participantes deberán
-adivinar qué persona está detrás de cada personaje de Marvel.</h4>
-<h3>🎁 Presupuesto 100.00 mil pesos maximo</h3>
-<h3>🎄Opciones de regalo</h3>
-<textarea id="rulesInput" placeholder="Escribe aquí las reglas u opciones de regal, colocar de primeras el personaje que les fue asigando y ahi si  las opciones ..."></textarea>
-<button onclick="saveRule()">Guardar</button>
-
-
-<h4>🎀 Opciones guardadas</h4>
+<h3>🎀 Opciones guardadas</h3>
 <ul id="rulesList"></ul>
-</div>
-</div>
 
+<!-- ADMIN -->
+<input id="adminKey" placeholder="Clave admin">
+<button onclick="unlockAdmin()">🔐</button>
+
+<div class="admin" id="adminPanel">
+<button onclick="resetAll()">♻️ Reiniciar todo el sorteo</button>
+</div>
 
 <script>
-let characters = JSON.parse(localStorage.getItem('characters')) || [
-'Iron Man','Capitan America','Thor','Hulk','viuda negra','ojo de halcon','Spider-Man',
-'Doctor Strange','Pantera negra','Bruja escarlata','Vision','Hombre hormiga','avispa','Loki','Capitan Marvel','Deadpool','Thanos'
+const ADMIN_KEY = "MARVEL2025";
+
+const characters = [
+"Iron Man","Capitan America","Thor","Hulk","Viuda Negra","Ojo de Halcon",
+"Spider-Man","Doctor Strange","Pantera Negra","Bruja Escarlata","Vision",
+"Hombre Hormiga","Avispa","Loki","Capitan Marvel","Deadpool","Thanos"
 ];
 
+let data = JSON.parse(localStorage.getItem("data")) || {};
+let available = JSON.parse(localStorage.getItem("available")) || [...characters];
+let rules = JSON.parse(localStorage.getItem("rules")) || [];
 
-let rules = JSON.parse(localStorage.getItem('rules')) || [];
-
-
-function saveState() {
-localStorage.setItem('characters', JSON.stringify(characters));
-localStorage.setItem('rules', JSON.stringify(rules));
+function saveAll() {
+  localStorage.setItem("data", JSON.stringify(data));
+  localStorage.setItem("available", JSON.stringify(available));
+  localStorage.setItem("rules", JSON.stringify(rules));
 }
-
 
 function assignCharacter() {
-if (characters.length === 0) return alert('No hay personajes disponibles');
-const index = Math.floor(Math.random() * characters.length);
-const chosen = characters.splice(index, 1)[0];
-document.getElementById('myCharacter').innerText = chosen;
-saveState();
-}
+  const code = document.getElementById("code").value.trim().toUpperCase();
+  if (!code) return alert("Ingresa tu código");
 
+  if (!data[code]) data[code] = {};
+
+  if (!data[code].me) {
+    const index = Math.floor(Math.random() * available.length);
+    data[code].me = available.splice(index,1)[0];
+    saveAll();
+  }
+
+  document.getElementById("myCharacter").innerText = data[code].me;
+}
 
 function drawGift() {
-if (characters.length === 0) return alert('No hay personajes disponibles');
-const index = Math.floor(Math.random() * characters.length);
-const chosen = characters.splice(index, 1)[0];
-document.getElementById('giftCharacter').innerText = chosen;
-saveState();
-}
+  const code = document.getElementById("code").value.trim().toUpperCase();
+  if (!code || !data[code]?.me) return alert("Primero asigna tu personaje");
 
+  if (!data[code].gift) {
+    const index = Math.floor(Math.random() * available.length);
+    data[code].gift = available.splice(index,1)[0];
+    saveAll();
+  }
+
+  document.getElementById("giftCharacter").innerText = data[code].gift;
+}
 
 function saveRule() {
-const input = document.getElementById('rulesInput');
-if (!input.value.trim()) return;
-rules.push(input.value.trim());
-input.value = '';
-renderRules();
-saveState();
+  const text = document.getElementById("rulesInput").value.trim();
+  if (!text) return;
+  rules.push(text);
+  document.getElementById("rulesInput").value = "";
+  saveAll();
+  renderRules();
 }
-
 
 function renderRules() {
-const list = document.getElementById('rulesList');
-list.innerHTML = '';
-rules.forEach(rule => {
-const li = document.createElement('li');
-li.textContent = rule;
-list.appendChild(li);
-});
+  const ul = document.getElementById("rulesList");
+  ul.innerHTML = "";
+  rules.forEach(r => {
+    const li = document.createElement("li");
+    li.textContent = r;
+    ul.appendChild(li);
+  });
 }
 
+function unlockAdmin() {
+  if (document.getElementById("adminKey").value === ADMIN_KEY) {
+    document.getElementById("adminPanel").style.display = "block";
+  }
+}
+
+function resetAll() {
+  if (confirm("¿Seguro que deseas reiniciar TODO?")) {
+    localStorage.clear();
+    location.reload();
+  }
+}
 
 renderRules();
 </script>
 
-
 </body>
-
 </html>
 
 
