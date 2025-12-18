@@ -4,241 +4,149 @@
 <meta charset="UTF-8">
 <title>🎄 Amigo Navideño Marvel</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <style>
 body {
-  font-family: 'Segoe UI', Arial;
+  font-family: Arial;
   background: linear-gradient(180deg, #0f172a, #020617);
   color: white;
-  margin: 0;
-  padding: 20px;
-  overflow-x: hidden;
+  padding: 15px;
 }
-
-/* NIEVE */
-.snowflake {
-  position: fixed;
-  top: -10px;
-  color: white;
-  font-size: 14px;
-  animation: fall linear infinite;
-  opacity: 0.8;
-}
-@keyframes fall {
-  to { transform: translateY(110vh); }
-}
-
-h1 {
-  text-align: center;
-  margin-bottom: 10px;
-}
-
-.app {
-  max-width: 420px;
-  margin: auto;
-  background: #020617;
-  border-radius: 20px;
-  padding: 20px;
-  box-shadow: 0 0 30px rgba(0,0,0,.6);
-}
-
 .card {
   background: #1e293b;
   padding: 15px;
   border-radius: 15px;
   margin-bottom: 15px;
 }
-
 button {
   width: 100%;
-  padding: 14px;
-  border-radius: 12px;
-  border: none;
-  background: #16a34a;
-  color: white;
-  font-size: 16px;
+  padding: 12px;
+  margin-top: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  margin-top: 10px;
 }
-button:hover { background: #22c55e }
-
-input, textarea {
+textarea, input {
   width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  margin-top: 8px;
-  font-size: 14px;
-}
-
-textarea { min-height: 90px }
-
-.result {
-  background: #020617;
   padding: 10px;
-  border-radius: 10px;
-  text-align: center;
-  font-size: 18px;
-  margin-top: 8px;
-}
-
-ul { padding-left: 20px }
-
-.admin {
-  display: none;
-  background: #334155;
-  padding: 12px;
-  border-radius: 12px;
-  margin-top: 10px;
+  border-radius: 8px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- NIEVE -->
-<script>
-for (let i = 0; i < 30; i++) {
-  let snow = document.createElement("div");
-  snow.className = "snowflake";
-  snow.innerHTML = "❄";
-  snow.style.left = Math.random() * 100 + "vw";
-  snow.style.animationDuration = 5 + Math.random() * 5 + "s";
-  snow.style.fontSize = 10 + Math.random() * 10 + "px";
-  document.body.appendChild(snow);
-}
-</script>
+<h2>🎄 Amigo Navideño Marvel</h2>
 
-<h1>🎄 Amigo Navideño Marvel 🦸‍♂️</h1>
-
-<div class="app">
-
-<!-- COMO USAR -->
 <div class="card">
-<h3>📲 ¿Cómo usar esta página?</h3>
-<p>
-1️⃣ Ingresa tu <b>código único</b> (cada persona tiene uno).<br><br>
-2️⃣ Presiona <b>Asignar personaje</b>. Ese será tu personaje Marvel durante todo el juego.<br><br>
-3️⃣ Luego presiona <b>Sortear regalo</b> para saber a qué personaje debes regalar.<br><br>
-4️⃣ Escribe tu personaje y <b>mínimo 3 opciones de regalo</b> y guarda.<br><br>
-5️⃣ El 24 de diciembre 🎅 se hará la dinámica para adivinar quién es cada personaje.
-</p>
-<h4>🎁 Presupuesto máximo: <b>$100.000</b></h4>
+<h3>📱 Cómo usar la página</h3>
+<p>1️⃣ Ingresa tu código único<br>
+2️⃣ Asigna tu personaje<br>
+3️⃣ Sortea a quién regalas<br>
+4️⃣ Escribe tus opciones de regalo<br>
+5️⃣ Guarda</p>
 </div>
 
-<!-- PARTICIPANTE -->
 <div class="card">
-<input id="code" placeholder="Ingresa tu código (Ej: AMIGO01)">
-
-<button onclick="assignCharacter()">🌀 Asignar personaje</button>
-<div class="result">🦸‍♂️ <span id="myCharacter">---</span></div>
-
-<button onclick="drawGift()">🎁 Sortear regalo</button>
-<div class="result">🎄 Regalas a: <span id="giftCharacter">---</span></div>
+<input id="userCode" placeholder="Código único (ej: MARVEL01)">
+<button onclick="loadUser()">Ingresar</button>
 </div>
 
-<!-- REGALOS -->
 <div class="card">
-<textarea id="rulesInput" placeholder="Ej: Iron Man - Camiseta, taza, figura..."></textarea>
-<button onclick="saveRule()">💾 Guardar opciones</button>
+<h3>🦸‍♂️ Tu personaje</h3>
+<p id="myCharacter">---</p>
+<button onclick="assignCharacter()">Asignar personaje</button>
 
-<h4>🎀 Opciones guardadas</h4>
-<ul id="rulesList"></ul>
+<h3>🎁 Regalas a</h3>
+<p id="giftCharacter">---</p>
+<button onclick="drawGift()">Sortear regalo</button>
 </div>
 
-<!-- ADMIN -->
 <div class="card">
-<input id="adminKey" placeholder="Clave admin">
-<button onclick="unlockAdmin()">🔐</button>
-
-<div class="admin" id="adminPanel">
-<button onclick="resetAll()">♻️ Reiniciar sorteo</button>
-</div>
+<textarea id="giftOptions" placeholder="Escribe tu personaje + 3 opciones de regalo"></textarea>
+<button onclick="saveOptions()">Guardar</button>
 </div>
 
+<div class="card">
+<h3>🎀 Opciones de todos</h3>
+<ul id="optionsList"></ul>
 </div>
 
 <script>
-const ADMIN_KEY = "MARVEL2025";
+  const firebaseConfig = {
+    apiKey: "AIzaSyBKeNX9UmyrXfj-CxrqMj5ZoOtPI-lvysw",
+    authDomain: "amigo-navideno-marvel.firebaseapp.com",
+    databaseURL: "https://amigo-navideno-marvel-default-rtdb.firebaseio.com",
+    projectId: "amigo-navideno-marvel",
+    storageBucket: "amigo-navideno-marvel.appspot.com",
+    messagingSenderId: "187166636326",
+    appId: "1:187166636326:web:1fbbbf1bf2a5468c9929e7"
+  };
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let currentUser = null;
 
 const characters = [
-"Iron Man","Capitan America","Thor","Hulk","Viuda Negra","Ojo de Halcon",
-"Spider-Man","Doctor Strange","Pantera Negra","Bruja Escarlata","Vision",
-"Hombre Hormiga","Avispa","Loki","Capitan Marvel","Deadpool","Thanos"
+'Iron Man','Capitan America','Thor','Hulk','Viuda Negra','Ojo de Halcón',
+'Spider-Man','Doctor Strange','Pantera Negra','Bruja Escarlata','Vision',
+'Ant-Man','Wasp','Loki','Capitan Marvel','Deadpool','Thanos'
 ];
 
-let data = JSON.parse(localStorage.getItem("data")) || {};
-let available = JSON.parse(localStorage.getItem("available")) || [...characters];
-let rules = JSON.parse(localStorage.getItem("rules")) || [];
-
-function saveAll() {
-  localStorage.setItem("data", JSON.stringify(data));
-  localStorage.setItem("available", JSON.stringify(available));
-  localStorage.setItem("rules", JSON.stringify(rules));
+function loadUser() {
+  const code = userCode.value.trim();
+  if (!code) return alert('Ingresa un código');
+  currentUser = code;
+  loadData();
 }
 
-function assignCharacter() {
-  const code = document.getElementById("code").value.trim().toUpperCase();
-  if (!code) return alert("Ingresa tu código");
-
-  if (!data[code]) data[code] = {};
-
-  if (!data[code].me) {
-    const i = Math.floor(Math.random() * available.length);
-    data[code].me = available.splice(i,1)[0];
-    saveAll();
+async function assignCharacter() {
+  const ref = db.collection('users').doc(currentUser);
+  const doc = await ref.get();
+  if (doc.exists && doc.data().character) {
+    myCharacter.innerText = doc.data().character;
+    return;
   }
-
-  document.getElementById("myCharacter").innerText = data[code].me;
+  const used = await db.collection('users').get();
+  const taken = used.docs.map(d => d.data().character);
+  const available = characters.filter(c => !taken.includes(c));
+  const chosen = available[Math.floor(Math.random() * available.length)];
+  await ref.set({ character: chosen }, { merge: true });
+  myCharacter.innerText = chosen;
 }
 
-function drawGift() {
-  const code = document.getElementById("code").value.trim().toUpperCase();
-  if (!data[code]?.me) return alert("Primero asigna tu personaje");
-
-  if (!data[code].gift) {
-    const i = Math.floor(Math.random() * available.length);
-    data[code].gift = available.splice(i,1)[0];
-    saveAll();
-  }
-
-  document.getElementById("giftCharacter").innerText = data[code].gift;
+async function drawGift() {
+  const all = await db.collection('users').get();
+  const others = all.docs.filter(d => d.id !== currentUser);
+  const chosen = others[Math.floor(Math.random() * others.length)].data().character;
+  giftCharacter.innerText = chosen;
 }
 
-function saveRule() {
-  const text = document.getElementById("rulesInput").value.trim();
-  if (!text) return;
-  rules.push(text);
-  document.getElementById("rulesInput").value = "";
-  saveAll();
-  renderRules();
+async function saveOptions() {
+  await db.collection('options').add({
+    user: currentUser,
+    text: giftOptions.value
+  });
+  giftOptions.value = '';
+  loadData();
 }
 
-function renderRules() {
-  const ul = document.getElementById("rulesList");
-  ul.innerHTML = "";
-  rules.forEach(r => {
-    const li = document.createElement("li");
-    li.textContent = r;
-    ul.appendChild(li);
+async function loadData() {
+  optionsList.innerHTML = '';
+  const snap = await db.collection('options').get();
+  snap.forEach(doc => {
+    const li = document.createElement('li');
+    li.innerText = doc.data().text;
+    optionsList.appendChild(li);
   });
 }
-
-function unlockAdmin() {
-  if (document.getElementById("adminKey").value === ADMIN_KEY) {
-    document.getElementById("adminPanel").style.display = "block";
-  }
+  if (currentUser === "ADMIN123") {
+  await db.collection('users').get().then(s => s.forEach(d => d.ref.delete()));
+  await db.collection('options').get().then(s => s.forEach(d => d.ref.delete()));
 }
 
-function resetAll() {
-  if (confirm("¿Seguro que deseas reiniciar TODO el sorteo?")) {
-    localStorage.clear();
-    location.reload();
-  }
-}
-
-renderRules();
 </script>
 
 </body>
