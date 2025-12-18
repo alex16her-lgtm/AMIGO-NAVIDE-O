@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+<ul id="optionsList" style="list-style:none;padding:0"></ul>
 <head>
 <meta charset="UTF-8">
 <title>🎄 Amigo Navideño Marvel</title>
@@ -201,6 +202,8 @@ async function drawGift() {
   if (!userDoc.exists || !userDoc.data().character) {
     alert("Asigna tu personaje primero");
     return;
+    giftCharacter.innerText = giftTo;
+    loadOptionsForGift();
   }
 
   if (userDoc.data().giftTo) {
@@ -216,16 +219,31 @@ async function drawGift() {
 }
 
 async function saveOptions() {
-  if (!giftOptions.value.trim()) return alert("Escribe opciones");
+  if (!currentUser) return alert("Ingresa tu código");
 
-  await db.collection("options").add({
-    user: currentUser,
+  const userRef = db.collection("users").doc(currentUser);
+  const userDoc = await userRef.get();
+
+  if (!userDoc.exists || !userDoc.data().character) {
+    alert("Asigna tu personaje primero");
+    return;
+  }
+
+  if (!giftOptions.value.trim()) {
+    alert("Escribe tus opciones de regalo");
+    return;
+  }
+
+  await db.collection("options").doc(userDoc.data().character).set({
+    character: userDoc.data().character,
     text: giftOptions.value
   });
 
   giftOptions.value = "";
-  loadData();
+  alert("✅ Opciones guardadas");
+  loadOptionsForGift();
 }
+
 
 async function loadData() {
   optionsList.innerHTML = "";
@@ -236,6 +254,38 @@ async function loadData() {
     optionsList.appendChild(li);
   });
 }
+  async function loadOptionsForGift() {
+  optionsList.innerHTML = "";
+
+  const userRef = db.collection("users").doc(currentUser);
+  const userDoc = await userRef.get();
+
+  if (!userDoc.exists || !userDoc.data().giftTo) {
+    const li = document.createElement("li");
+    li.innerText = "🎁 Aún no has sorteado a quién regalar";
+    optionsList.appendChild(li);
+    return;
+  }
+
+  const giftCharacter = userDoc.data().giftTo;
+
+  const optionDoc = await db.collection("options").doc(giftCharacter).get();
+
+  if (!optionDoc.exists) {
+    const li = document.createElement("li");
+    li.innerText = "⏳ Aún no han colocado las opciones de regalo";
+    optionsList.appendChild(li);
+    return;
+  }
+
+  const li = document.createElement("li");
+  li.innerHTML = `
+    🎀 <strong>${giftCharacter}</strong><br>
+    ${optionDoc.data().text}
+  `;
+  optionsList.appendChild(li);
+}
+
 
 async function adminReset() {
   if (!confirm("¿Reiniciar TODO el sorteo?")) return;
@@ -250,12 +300,14 @@ async function adminReset() {
 
   alert("✅ Sorteo reiniciado");
 }
+  
 </script>
 
 
 
 </body>
 </html>
+
 
 
 
