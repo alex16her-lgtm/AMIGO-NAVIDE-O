@@ -101,7 +101,8 @@ for(let i=0;i<35;i++){
 </div>
 
 <div class="card">
-<textarea id="giftOptions" placeholder="Personaje + 3 opciones de regalo"></textarea>
+<textarea id="giftOptions"placeholder="Describe el regalo (talla, color, referencia)"></textarea>
+<input id="giftLink" placeholder="Link del producto (opcional)">
 <button onclick="saveOptions()">Guardar</button>
 </div>
 
@@ -241,17 +242,23 @@ async function saveOptions() {
     alert("Asigna tu personaje primero");
     return;
   }
+const text = giftOptions.value.trim();
+  const link = giftLink.value.trim();
 
-  if (!giftOptions.value.trim()) {
-    alert("Escribe tus opciones de regalo");
+  if (!text && !link) {
+    alert("Escribe una descripción o agrega un link");
     return;
   }
 
- await db.collection("options").doc(userDoc.data().character).set({
-  character: userDoc.data().character,
-  text: giftOptions.value
-});
+  await db.collection("options").doc(userDoc.data().character).set({
+    character: userDoc.data().character,
+    text,
+    link,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
 
+  giftOptions.value = "";
+  giftLink.value = "";
 giftOptions.value = "";
 alert("✅ Opciones guardadas");
 
@@ -292,12 +299,24 @@ async function loadData() {
     return;
   }
 
-  myGiftOptions.innerHTML = `
-    <li>
-      🎀 <strong>${giftCharacter}</strong><br>
-      ${optionDoc.data().text}
-    </li>
+  const data = optionDoc.data();
+
+  const li = document.createElement("li");
+  li.style.padding = "12px";
+  li.style.borderRadius = "14px";
+  li.style.background = "rgba(255,255,255,0.08)";
+
+  li.innerHTML = `
+    🎀 <strong>${giftCharacter}</strong><br><br>
+    ${data.text || ""}
+
+    ${data.link 
+      ? `<br><a href="${data.link}" target="_blank" style="color:#22c55e;font-weight:bold">🔗 Ver producto</a>` 
+      : ""
+    }
   `;
+
+  optionsList.appendChild(li);
 }
 async function loadAllOptions() {
   const list = document.getElementById("allOptions");
@@ -327,6 +346,33 @@ async function loadAllOptions() {
     list.appendChild(li);
   });
 }
+async function loadAllOptionsAdmin() {
+  optionsList.innerHTML = "";
+
+  const snap = await db.collection("options").get();
+
+  snap.forEach(doc => {
+    const data = doc.data();
+    const li = document.createElement("li");
+
+    li.style.padding = "12px";
+    li.style.borderRadius = "14px";
+    li.style.background = "rgba(255,255,255,0.12)";
+    li.style.marginBottom = "10px";
+
+    li.innerHTML = `
+      🎁 <strong>${doc.id}</strong><br>
+      ${data.text || ""}
+
+      ${data.link 
+        ? `<br><a href="${data.link}" target="_blank" style="color:#22c55e">🔗 Ver link</a>` 
+        : ""
+      }
+    `;
+
+    optionsList.appendChild(li);
+  });
+}
 
 
 
@@ -350,6 +396,7 @@ async function adminReset() {
 
 </body>
 </html>
+
 
 
 
