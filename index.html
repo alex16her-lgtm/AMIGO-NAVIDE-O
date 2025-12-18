@@ -84,7 +84,8 @@ for(let i=0;i<35;i++){
 </div>
 
 <div class="card">
-<input id="userCode" placeholder="Código único (MARVEL01)">
+<input id="userCode" placeholder="Código único (MARVEL01)" 
+       oninput="this.value = this.value.toUpperCase()">
 <button onclick="loadUser()">Ingresar</button>
 </div>
 
@@ -155,7 +156,7 @@ async function createGlobalDraw() {
 }
 
 function loadUser() {
-  const code = userCode.value.trim();
+ const code = userCode.value.trim().toUpperCase();
   if (!code) return alert("Ingresa un código");
 
   currentUser = code;
@@ -255,6 +256,7 @@ async function adminReset() {
 
 </body>
 </html>
+
 
 
 
