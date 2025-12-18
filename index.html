@@ -112,12 +112,12 @@ for(let i=0;i<35;i++){
 <button id="adminBtn" onclick="adminReset()" style="display:none">
 🔐 Reiniciar sorteo
 </button>
-
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyBKeNX9UmyrXfj-CxrqMj5ZoOtPI-lvysw",
   authDomain: "amigo-navideno-marvel.firebaseapp.com",
-  projectId: "amigo-navideno-marvel"
+  projectId: "amigo-navideno-marvel",
+  databaseURL: "https://amigo-navideno-marvel-default-rtdb.firebaseio.com"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -125,29 +125,29 @@ const db = firebase.firestore();
 
 let currentUser = null;
 
-const characters = [
 const DRAW_ID = "GLOBAL_DRAW";
-'Iron Man','Capitan America','Thor','Hulk','Viuda Negra','Ojo de Halcón',
-'Spider-Man','Doctor Strange','Pantera Negra','Bruja Escarlata','Vision',
-'Ant-Man','Wasp','Loki','Capitan Marvel','Deadpool','Thanos','Wolverine'
+
+const characters = [
+  'Iron Man','Capitan America','Thor','Hulk','Viuda Negra','Ojo de Halcón',
+  'Spider-Man','Doctor Strange','Pantera Negra','Bruja Escarlata','Vision',
+  'Ant-Man','Wasp','Loki','Capitan Marvel','Deadpool','Thanos','Wolverine'
 ];
+
 function shuffle(array) {
   return array.sort(() => Math.random() - 0.5);
 }
-  async function createGlobalDraw() {
+
+async function createGlobalDraw() {
   const ref = db.collection("draws").doc(DRAW_ID);
   const snap = await ref.get();
 
-  // Si ya existe, no volver a crear
   if (snap.exists) return snap.data().map;
 
   const shuffled = shuffle([...characters]);
   const map = {};
 
   for (let i = 0; i < shuffled.length; i++) {
-    const giver = shuffled[i];
-    const receiver = shuffled[(i + 1) % shuffled.length];
-    map[giver] = receiver;
+    map[shuffled[i]] = shuffled[(i + 1) % shuffled.length];
   }
 
   await ref.set({ map });
@@ -157,6 +157,7 @@ function shuffle(array) {
 function loadUser() {
   const code = userCode.value.trim();
   if (!code) return alert("Ingresa un código");
+
   currentUser = code;
   loadData();
 
@@ -167,6 +168,7 @@ function loadUser() {
 
 async function assignCharacter() {
   if (!currentUser) return alert("Ingresa tu código");
+
   const ref = db.collection("users").doc(currentUser);
   const doc = await ref.get();
 
@@ -176,7 +178,7 @@ async function assignCharacter() {
   }
 
   const used = await db.collection("users").get();
-  const taken = used.docs.map(d => d.data().character);
+  const taken = used.docs.map(d => d.data().character).filter(Boolean);
   const available = characters.filter(c => !taken.includes(c));
 
   if (!available.length) {
@@ -190,10 +192,7 @@ async function assignCharacter() {
 }
 
 async function drawGift() {
-  if (!currentUser) {
-    alert("Ingresa tu código");
-    return;
-  }
+  if (!currentUser) return alert("Ingresa tu código");
 
   const userRef = db.collection("users").doc(currentUser);
   const userDoc = await userRef.get();
@@ -203,29 +202,26 @@ async function drawGift() {
     return;
   }
 
-  const myCharacter = userDoc.data().character;
+  if (userDoc.data().giftTo) {
+    giftCharacter.innerText = userDoc.data().giftTo;
+    return;
+  }
 
-  // Obtener o crear sorteo global
   const drawMap = await createGlobalDraw();
+  const giftTo = drawMap[userDoc.data().character];
 
-  const giftTo = drawMap[myCharacter];
-
-  // Guardar para que nunca cambie
-  await userRef.set(
-    { giftTo },
-    { merge: true }
-  );
-
+  await userRef.set({ giftTo }, { merge: true });
   giftCharacter.innerText = giftTo;
 }
 
-
 async function saveOptions() {
   if (!giftOptions.value.trim()) return alert("Escribe opciones");
+
   await db.collection("options").add({
     user: currentUser,
     text: giftOptions.value
   });
+
   giftOptions.value = "";
   loadData();
 }
@@ -241,23 +237,25 @@ async function loadData() {
 }
 
 async function adminReset() {
-  if (!confirm("¿Reiniciar TODO?")) return;
+  if (!confirm("¿Reiniciar TODO el sorteo?")) return;
 
   const users = await db.collection("users").get();
   users.forEach(d => d.ref.delete());
 
   const options = await db.collection("options").get();
   options.forEach(d => d.ref.delete());
-  
-  await db.collection("draws").doc("GLOBAL_DRAW").delete();
 
+  await db.collection("draws").doc(DRAW_ID).delete();
 
   alert("✅ Sorteo reiniciado");
 }
 </script>
 
+
+
 </body>
 </html>
+
 
 
 
