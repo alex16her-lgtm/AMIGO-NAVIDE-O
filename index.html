@@ -126,10 +126,33 @@ const db = firebase.firestore();
 let currentUser = null;
 
 const characters = [
+const DRAW_ID = "GLOBAL_DRAW";
 'Iron Man','Capitan America','Thor','Hulk','Viuda Negra','Ojo de Halcón',
 'Spider-Man','Doctor Strange','Pantera Negra','Bruja Escarlata','Vision',
 'Ant-Man','Wasp','Loki','Capitan Marvel','Deadpool','Thanos','Wolverine'
 ];
+function shuffle(array) {
+  return array.sort(() => Math.random() - 0.5);
+}
+  async function createGlobalDraw() {
+  const ref = db.collection("draws").doc(DRAW_ID);
+  const snap = await ref.get();
+
+  // Si ya existe, no volver a crear
+  if (snap.exists) return snap.data().map;
+
+  const shuffled = shuffle([...characters]);
+  const map = {};
+
+  for (let i = 0; i < shuffled.length; i++) {
+    const giver = shuffled[i];
+    const receiver = shuffled[(i + 1) % shuffled.length];
+    map[giver] = receiver;
+  }
+
+  await ref.set({ map });
+  return map;
+}
 
 function loadUser() {
   const code = userCode.value.trim();
@@ -156,23 +179,46 @@ async function assignCharacter() {
   const taken = used.docs.map(d => d.data().character);
   const available = characters.filter(c => !taken.includes(c));
 
-  if (!available.length) return alert("No hay personajes disponibles");
+  if (!available.length) {
+    alert("No hay personajes disponibles");
+    return;
+  }
 
-  const chosen = available[Math.floor(Math.random()*available.length)];
-  await ref.set({ character: chosen });
+  const chosen = available[Math.floor(Math.random() * available.length)];
+  await ref.set({ character: chosen }, { merge: true });
   myCharacter.innerText = chosen;
 }
 
 async function drawGift() {
-  if (!currentUser) return alert("Ingresa tu código");
-  const all = await db.collection("users").get();
-  const others = all.docs.filter(d => d.id !== currentUser);
+  if (!currentUser) {
+    alert("Ingresa tu código");
+    return;
+  }
 
-  if (!others.length) return alert("Aún no hay otros jugadores");
+  const userRef = db.collection("users").doc(currentUser);
+  const userDoc = await userRef.get();
 
-  giftCharacter.innerText =
-    others[Math.floor(Math.random()*others.length)].data().character;
+  if (!userDoc.exists || !userDoc.data().character) {
+    alert("Asigna tu personaje primero");
+    return;
+  }
+
+  const myCharacter = userDoc.data().character;
+
+  // Obtener o crear sorteo global
+  const drawMap = await createGlobalDraw();
+
+  const giftTo = drawMap[myCharacter];
+
+  // Guardar para que nunca cambie
+  await userRef.set(
+    { giftTo },
+    { merge: true }
+  );
+
+  giftCharacter.innerText = giftTo;
 }
+
 
 async function saveOptions() {
   if (!giftOptions.value.trim()) return alert("Escribe opciones");
@@ -202,6 +248,9 @@ async function adminReset() {
 
   const options = await db.collection("options").get();
   options.forEach(d => d.ref.delete());
+  
+  await db.collection("draws").doc("GLOBAL_DRAW").delete();
+
 
   alert("✅ Sorteo reiniciado");
 }
@@ -209,6 +258,7 @@ async function adminReset() {
 
 </body>
 </html>
+
 
 
 
