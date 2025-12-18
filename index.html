@@ -106,8 +106,13 @@ for(let i=0;i<35;i++){
 </div>
 
 <div class="card">
-<h3>🎀 Opciones de todos</h3>
-<ul id="optionsList"></ul>
+<h3>🎀 Opciones para ti</h3>
+<ul id="myGiftOptions" style="list-style:none;padding:0"></ul>
+</div>
+
+<div class="card">
+<h3>🎁 Opciones de todos</h3>
+<ul id="allOptions" style="list-style:none;padding:0"></ul>
 </div>
 
 <!-- 🔐 BOTÓN ADMIN OCULTO -->
@@ -157,11 +162,12 @@ async function createGlobalDraw() {
 }
 
 function loadUser() {
- const code = userCode.value.trim().toUpperCase();
+  const code = userCode.value.trim().toUpperCase();
   if (!code) return alert("Ingresa un código");
 
   currentUser = code;
-  loadData();
+  loadOptionsForGift();
+  loadAllOptions();
 
   if (currentUser === "ADMIN123") {
     adminBtn.style.display = "block";
@@ -234,14 +240,16 @@ async function saveOptions() {
     return;
   }
 
-  await db.collection("options").doc(userDoc.data().character).set({
-    character: userDoc.data().character,
-    text: giftOptions.value
-  });
+ await db.collection("options").doc(userDoc.data().character).set({
+  character: userDoc.data().character,
+  text: giftOptions.value
+});
 
-  giftOptions.value = "";
-  alert("✅ Opciones guardadas");
-  loadOptionsForGift();
+giftOptions.value = "";
+alert("✅ Opciones guardadas");
+
+loadOptionsForGift();
+loadAllOptions();
 }
 
 
@@ -255,37 +263,53 @@ async function loadData() {
   });
 }
   async function loadOptionsForGift() {
-  optionsList.innerHTML = "";
+  myGiftOptions.innerHTML = "";
 
   const userRef = db.collection("users").doc(currentUser);
   const userDoc = await userRef.get();
 
   if (!userDoc.exists || !userDoc.data().giftTo) {
-    const li = document.createElement("li");
-    li.innerText = "🎁 Aún no has sorteado a quién regalar";
-    optionsList.appendChild(li);
+    myGiftOptions.innerHTML = "<li>🎁 Aún no has sorteado a quién regalar</li>";
     return;
   }
 
   const giftCharacter = userDoc.data().giftTo;
-
   const optionDoc = await db.collection("options").doc(giftCharacter).get();
 
   if (!optionDoc.exists) {
-    const li = document.createElement("li");
-    li.innerText = "⏳ Aún no han colocado las opciones de regalo";
-    optionsList.appendChild(li);
+    myGiftOptions.innerHTML =
+      "<li>⏳ Aún no han colocado las opciones de regalo</li>";
     return;
   }
 
-  const li = document.createElement("li");
-  li.innerHTML = `
-    🎀 <strong>${giftCharacter}</strong><br>
-    ${optionDoc.data().text}
+  myGiftOptions.innerHTML = `
+    <li>
+      🎀 <strong>${giftCharacter}</strong><br>
+      ${optionDoc.data().text}
+    </li>
   `;
-  optionsList.appendChild(li);
 }
 
+async function loadAllOptions() {
+  allOptions.innerHTML = "";
+
+  const snap = await db.collection("options").get();
+
+  if (snap.empty) {
+    allOptions.innerHTML = "<li>⏳ Nadie ha colocado opciones aún</li>";
+    return;
+  }
+
+  snap.forEach(d => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      🎁 <strong>${d.id}</strong><br>
+      ${d.data().text}
+      <hr>
+    `;
+    allOptions.appendChild(li);
+  });
+}
 
 async function adminReset() {
   if (!confirm("¿Reiniciar TODO el sorteo?")) return;
@@ -307,6 +331,7 @@ async function adminReset() {
 
 </body>
 </html>
+
 
 
 
