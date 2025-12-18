@@ -110,10 +110,10 @@ for(let i=0;i<35;i++){
 <ul id="myGiftOptions" style="list-style:none;padding:0"></ul>
 </div>
 
-<!--<div class="card">
+<div class="card">
 <h3>🎁 Opciones de todos</h3>
 <ul id="allOptions" style="list-style:none;padding:0"></ul>
-</div>-->
+</div>
 
 <!-- 🔐 BOTÓN ADMIN OCULTO -->
 <button id="adminBtn" onclick="adminReset()" style="display:none">
@@ -166,13 +166,19 @@ function loadUser() {
   if (!code) return alert("Ingresa un código");
 
   currentUser = code;
-  loadOptionsForGift();
-  loadAllOptions();
 
+  loadOptionsForGift();
+
+  // 🔐 SOLO ADMIN VE TODO
   if (currentUser === "ADMIN123") {
     adminBtn.style.display = "block";
+    allOptionsCard.style.display = "block";
+    loadAllOptions();
+  } else {
+    allOptionsCard.style.display = "none";
   }
 }
+
 
 async function assignCharacter() {
   if (!currentUser) return alert("Ingresa tu código");
@@ -249,7 +255,10 @@ giftOptions.value = "";
 alert("✅ Opciones guardadas");
 
 loadOptionsForGift();
-loadAllOptions();
+  
+if (currentUser === "ADMIN123") {
+  loadAllOptions();
+}
 }
 
 
@@ -331,6 +340,7 @@ async function adminReset() {
 
 </body>
 </html>
+
 
 
 
