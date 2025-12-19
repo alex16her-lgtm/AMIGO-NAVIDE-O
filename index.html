@@ -312,6 +312,7 @@ async function loadData() {
   li.style.background = "rgba(255,255,255,0.08)";
 
   li.innerHTML = `
+  <li>
     🎀 <strong>${giftCharacter}</strong><br><br>
     ${data.text || ""}
 
@@ -319,6 +320,7 @@ async function loadData() {
       ? `<br><a href="${data.link}" target="_blank" style="color:#22c55e;font-weight:bold">🔗 Ver producto</a>` 
       : ""
     }
+    </li>
   `;
 
   optionsList.appendChild(li);
@@ -401,6 +403,7 @@ async function adminReset() {
 
 </body>
 </html>
+
 
 
 
