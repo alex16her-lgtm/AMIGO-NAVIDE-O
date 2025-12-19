@@ -270,23 +270,18 @@ if (currentUser === "ADMIN123") {
 }
 
 
-async function loadData() {
-  optionsList.innerHTML = "";
-  const snap = await db.collection("options").get();
-  snap.forEach(d => {
-    const li = document.createElement("li");
-    li.innerText = d.data().text;
-    optionsList.appendChild(li);
-  });
-}
+
   async function loadOptionsForGift() {
   myGiftOptions.innerHTML = "";
+
+  if (!currentUser) return;
 
   const userRef = db.collection("users").doc(currentUser);
   const userDoc = await userRef.get();
 
   if (!userDoc.exists || !userDoc.data().giftTo) {
-    myGiftOptions.innerHTML = "<li>🎁 Aún no has sorteado a quién regalar</li>";
+    myGiftOptions.innerHTML =
+      "<li>🎁 Aún no has sorteado a quién regalar</li>";
     return;
   }
 
@@ -298,12 +293,7 @@ async function loadData() {
       "<li>⏳ Aún no han colocado las opciones de regalo</li>";
     return;
   }
-  myGiftOptions.innerHTML = `
-    <li>
-      🎀 <strong>${giftCharacter}</strong><br>
-      ${optionDoc.data().text}
-    </li>
-  `;
+
   const data = optionDoc.data();
 
   const li = document.createElement("li");
@@ -312,19 +302,20 @@ async function loadData() {
   li.style.background = "rgba(255,255,255,0.08)";
 
   li.innerHTML = `
-  <li>
     🎀 <strong>${giftCharacter}</strong><br><br>
     ${data.text || ""}
 
-    ${data.link 
-      ? `<br><a href="${data.link}" target="_blank" style="color:#22c55e;font-weight:bold">🔗 Ver producto</a>` 
-      : ""
+    ${
+      data.link
+        ? `<br><br><a href="${data.link}" target="_blank"
+           style="color:#22c55e;font-weight:bold">🔗 Ver producto</a>`
+        : ""
     }
-    </li>
   `;
 
-  optionsList.appendChild(li);
+  myGiftOptions.appendChild(li);
 }
+
 async function loadAllOptions() {
   const list = document.getElementById("allOptions");
   list.innerHTML = "";
@@ -332,52 +323,32 @@ async function loadAllOptions() {
   const snap = await db.collection("options").get();
 
   if (snap.empty) {
-    const li = document.createElement("li");
-    li.innerText = "⏳ Aún no hay opciones guardadas";
-    list.appendChild(li);
+    list.innerHTML = "<li>⏳ Aún no hay opciones guardadas</li>";
     return;
   }
 
   snap.forEach(doc => {
+    const data = doc.data();
+
     const li = document.createElement("li");
     li.style.marginBottom = "12px";
-    li.style.padding = "10px";
-    li.style.borderRadius = "12px";
-    li.style.background = "rgba(255,255,255,0.08)";
-
-    li.innerHTML = `
-      🎀 <strong>${doc.id}</strong><br>
-      ${doc.data().text}
-    `;
-
-    list.appendChild(li);
-  });
-}
-async function loadAllOptionsAdmin() {
-  optionsList.innerHTML = "";
-
-  const snap = await db.collection("options").get();
-
-  snap.forEach(doc => {
-    const data = doc.data();
-    const li = document.createElement("li");
-
     li.style.padding = "12px";
     li.style.borderRadius = "14px";
-    li.style.background = "rgba(255,255,255,0.12)";
-    li.style.marginBottom = "10px";
+    li.style.background = "rgba(255,255,255,0.1)";
 
     li.innerHTML = `
-      🎁 <strong>${doc.id}</strong><br>
+      🎁 <strong>${doc.id}</strong><br><br>
       ${data.text || ""}
 
-      ${data.link 
-        ? `<br><a href="${data.link}" target="_blank" style="color:#22c55e">🔗 Ver link</a>` 
-        : ""
+      ${
+        data.link
+          ? `<br><br><a href="${data.link}" target="_blank"
+             style="color:#22c55e;font-weight:bold">🔗 Ver producto</a>`
+          : ""
       }
     `;
 
-    optionsList.appendChild(li);
+    list.appendChild(li);
   });
 }
 
@@ -403,6 +374,7 @@ async function adminReset() {
 
 </body>
 </html>
+
 
 
 
