@@ -298,7 +298,12 @@ async function loadData() {
       "<li>⏳ Aún no han colocado las opciones de regalo</li>";
     return;
   }
-
+  myGiftOptions.innerHTML = `
+    <li>
+      🎀 <strong>${giftCharacter}</strong><br>
+      ${optionDoc.data().text}
+    </li>
+  `;
   const data = optionDoc.data();
 
   const li = document.createElement("li");
@@ -396,6 +401,7 @@ async function adminReset() {
 
 </body>
 </html>
+
 
 
 
