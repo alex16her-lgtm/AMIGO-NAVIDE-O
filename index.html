@@ -160,6 +160,10 @@ for(let i=0;i<35;i++){
 <h3>🎁 Opciones de todos</h3>
 <ul id="allOptions" style="list-style:none;padding:0"></ul>
 </div>
+ <div class="card" id="codesCard" style="display:none">
+  <h3>🧾 Códigos registrados</h3>
+  <ul id="codesList" style="list-style:none;padding:0"></ul>
+</div>
 
 <!-- 🔐 BOTÓN ADMIN OCULTO -->
 <button id="adminBtn" onclick="adminReset()" style="display:none">
@@ -216,16 +220,47 @@ function loadUser() {
   loadOptionsForGift();
 
   // 🔐 SOLO ADMIN VE TODO
-  if (currentUser === "ADMIN123") {
-    adminBtn.style.display = "block";
-    allOptionsCard.style.display = "block";
-    loadAllOptions();
-  } else {
-    adminBtn.style.display = "none";
-    allOptionsCard.style.display = "none";
-  }
+ if (currentUser === "ADMIN123") {
+  adminBtn.style.display = "block";
+  allOptionsCard.style.display = "block";
+  loadAllOptions();
+  loadRegisteredCodes();
+  codesCard.style.display = "block";
+} else {
+  adminBtn.style.display = "none";
+  allOptionsCard.style.display = "none";
+  codesCard.style.display = "none";
+}
 }
 
+async function loadRegisteredCodes() {
+  const list = document.getElementById("codesList");
+  list.innerHTML = "";
+
+  const snap = await db.collection("users").get();
+
+  if (snap.empty) {
+    list.innerHTML = "<li>⏳ No hay códigos registrados</li>";
+    return;
+  }
+
+  snap.forEach(doc => {
+    const data = doc.data();
+
+    const li = document.createElement("li");
+    li.style.padding = "8px";
+    li.style.marginBottom = "6px";
+    li.style.borderRadius = "10px";
+    li.style.background = "rgba(255,255,255,0.08)";
+
+    li.innerHTML = `
+      🔑 <strong>${doc.id}</strong>
+      ${data.character ? ` — ${data.character}` : ""}
+    `;
+
+    list.appendChild(li);
+  });
+}
 
 async function assignCharacter() {
   if (!currentUser) return alert("Ingresa tu código");
@@ -419,6 +454,7 @@ async function adminReset() {
 
 </body>
 </html>
+
 
 
 
